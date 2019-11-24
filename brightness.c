@@ -8,22 +8,23 @@ int main(int argc, char *argv[]) {
 
 	/* Check for argument, output and exit if it's not there */
 	if (argc <= 1) {
-		printf("Requires 1 arg between 0 and 1\n");
+		printf("Usage: brightness [number]\n");
 		return 1;
 	}
 
 	/* Check if file exists, create it if not */
-	if( access(".brightness", F_OK ) != -1 ) {
+	/*if( access(".brightness", F_OK ) != -1 ) {
 		//file exists
 	} else {
 		//file doesn't exist
 		printf("not there\n");
 		system("echo 5 > .brightness");
-	}
+	}*/
 
 	/* Get brightness level from file */
-	FILE *ls = popen("cat .brightness", "r");
-	char buf[32];
+	FILE *ls = popen("cat /sys/class/backlight/intel_backlight/brightness",
+		       	"r");
+	char buf[64];
 	int num;
 
 	while (fgets(buf, sizeof(buf), ls) != 0) {
@@ -41,15 +42,16 @@ int main(int argc, char *argv[]) {
 
 	/* Set new brightness level with xrandr */
 	char cmd[256];
-	strcpy(cmd, "xrandr --output eDP-1 --brightness 0.");
+	strcpy(cmd, "echo ");
 	strcat(cmd, strNum);
+	strcat(cmd, " > /sys/class/backlight/intel_backlight/brightness");
 	system(cmd);
 	
 	/* update current brightness */
-	strcpy(cmd, "echo ");
+	/*strcpy(cmd, "echo ");
 	strcat(cmd, strNum);
 	strcat(cmd, " > .brightness");
-	system(cmd);
+	system(cmd);*/
 
 	return 1;
 
