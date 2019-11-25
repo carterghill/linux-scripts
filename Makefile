@@ -7,7 +7,7 @@ all: bin/brightness
 
 # Create bin/brightness if the arg is brightness
 brightness: bin/brightness
-	$(info Brightness done)
+	$(info brightness done)
 
 bin/brightness: brightness.c
 	mkdir -p bin
@@ -15,7 +15,3 @@ bin/brightness: brightness.c
 
 clean:
 	rm -f bin/*
-
-# Create bin/brightness if the arg is brightness
-#brightness: bin/brightness
-
