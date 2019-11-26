@@ -9,7 +9,22 @@ Programs like xbacklight don't seem to run properly on my laptop (Linux on a Mac
 
 This brightness file may not be in the same location on your system, if this is the case you will have to edit brightness.c to make the program work. If you're using a computer with an Nvidia GPU, you might find it by replacing intel_backlight with nvidia_backlight.
 
-#### To do
+You may get a permission error when running brightness. If so, run 
+```
+sudo crontab -e -u root
+```
+And add the following line:
+```
+@reboot chmod 777 /sys/class/backlight/intel_backlight/brightness
+```
+##### i3-gaps Users
+Those who use i3 gaps on a Macbook like me can bind the keyboard brightness keys to this function by adding the following lines to ~/.config/i3/config:
+```
+bindsym XF86MonBrightnessUp exec --no-startup-id brightness 200
+bindsym XF86MonBrightnessDown exec --no-startup-id brightness -200
+```
+
+##### To do
 Since not all systems store their current brightness in the same folder, I would like to find a way to locate it automatically (maybe I can always find it within /sys/class/backlight/ somewhere).
 
 Currently if you try to increase it past the maximum brightness, it simply won't take effect. I'd like to have it detect that the new brightness level is past the max and set it to that instead. The maximum would be easy to figure out for my system just through trial and error, but it probably isn't the same value on all systems so a way to figure it out through code would be better.
