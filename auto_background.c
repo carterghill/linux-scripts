@@ -31,14 +31,14 @@ int main(int argc, char *argv[]) {
 	
 	/* Loop forever and switch to a new background then sleep */
 	num = i;
-	for (i = 0; ; i++) {
+	for (i = rand()%num; ; i++) {
 		strcpy(buf, "feh --bg-scale ");
 		strcat(buf, argv[1]);
 		strcat(buf, "/");
 		strcat(buf, files[i]);
 		system(buf);
 		sleep(atoi(argv[2]));
-		if (i >= num-1) {
+		if (i >= num) {
 			i = -1;
 		}
 	}
