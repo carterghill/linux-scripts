@@ -3,7 +3,7 @@ CC = gcc
 CFLAGS = -g -std=gnu90 -Wall -pedantic
 
 # Compile all of these if make is done without arguments
-all: bin/brightness bin/auto_background
+all: bin/brightness bin/auto_background bin/dmenu2
 
 # Create bin/brightness if the arg is brightness
 brightness: bin/brightness
@@ -19,6 +19,11 @@ bin/brightness: brightness.c
 bin/auto_background: auto_background.c
 	mkdir -p bin
 	$(CC) -o bin/auto_background $(CFLAGS) auto_background.c
+
+bin/dmenu2: dmenu2.c
+	mkdir -p bin
+	$(CC) dmenu2.c -o bin/dmenu2 $(CFLAGS) -I/usr/include/cairo/ -lX11 \
+		-lcairo
 
 clean:
 	rm -f bin/*
