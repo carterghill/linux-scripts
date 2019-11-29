@@ -24,12 +24,15 @@ int main(int argc, char* argv[]) {
 	Screen*  s = DefaultScreenOfDisplay(d);
 	Window root = DefaultRootWindow(d);
 	int default_screen = XDefaultScreen(d);
+	Window overlay;
 
 	int i;
 	XEvent e;
 	char buf[8];
 	KeySym key;
 	int numKeys = 0;
+	char input[256];
+	int index = 0;
 
 	// thes two lines are really all you need
 	XSetWindowAttributes attrs;
@@ -45,7 +48,7 @@ int main(int argc, char* argv[]) {
 	attrs.background_pixel = 0;
 	attrs.border_pixel = 0;
 
-	Window overlay = XCreateWindow(
+	overlay = XCreateWindow(
 	    d, root,
 	    s->width/2, 0, 200, 200, 0,
 	    vinfo.depth, InputOutput, 
@@ -66,16 +69,23 @@ int main(int argc, char* argv[]) {
 	
 	//for (i = 0; i < 10; i++) {
 	if(XGrabKeyboard(d, root, true, GrabModeAsync, 
-				GrabModeAsync, CurrentTime) == GrabSuccess)
-		printf("Black window grabbed before loop\n");
-	else
+				GrabModeAsync, CurrentTime) == GrabSuccess) {
+		//printf("Black window grabbed before loop\n");
+	} else {
 		printf("Grab Unsuccessful\n");
-	//}
+		return 1;
+	}
 	
 	while (true){
-		XNextEvent(d, &e);	
+		XNextEvent(d, &e);
+
+		if (e.xkey.type == KeyRelease) {
+			printf("type 1\n");
+			continue;
+		}
+
 		if((numKeys = XLookupString(&e.xkey, buf, 8, &key, 0))) {
-			printf("lookup returned: ");
+			
 			for(i = 0; i < numKeys; i++) {
 				printf("text[%d]=%d\n", i, buf[i]);
 			}
@@ -83,11 +93,17 @@ int main(int argc, char* argv[]) {
 			/* Escape key pressed, exit */
 			if ((int)buf[0] == 27)
 				break;
+
+			input[index] = (char) buf[0];
+			index++;
+			usleep(1000);
+
 		}
 	
 
 	}
-	printf("out\n");
+	printf("input: %s\n", input);
+
 	//getchar();
 	cairo_destroy(cr);
 	cairo_surface_destroy(surf);
