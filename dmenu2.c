@@ -22,14 +22,16 @@ int main(int argc, char* argv[]) {
 
 	Display* d = XOpenDisplay(NULL);
 	Screen*  s = DefaultScreenOfDisplay(d);
-
-	printf("Width: %i\n", s->width);
-
 	Window root = DefaultRootWindow(d);
-
 	int default_screen = XDefaultScreen(d);
 
-	// these two lines are really all you need
+	int i;
+	XEvent e;
+	char buf[8];
+	KeySym key;
+	int numKeys = 0;
+
+	// thes two lines are really all you need
 	XSetWindowAttributes attrs;
 	attrs.override_redirect = true;
 
@@ -42,7 +44,6 @@ int main(int argc, char* argv[]) {
 	attrs.colormap = XCreateColormap(d, root, vinfo.visual, AllocNone);
 	attrs.background_pixel = 0;
 	attrs.border_pixel = 0;
-
 
 	Window overlay = XCreateWindow(
 	    d, root,
@@ -62,8 +63,7 @@ int main(int argc, char* argv[]) {
 	XFlush(d);
 
 	//std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-
-	int i;	
+	
 	//for (i = 0; i < 10; i++) {
 	if(XGrabKeyboard(d, root, true, GrabModeAsync, 
 				GrabModeAsync, CurrentTime) == GrabSuccess)
@@ -72,16 +72,7 @@ int main(int argc, char* argv[]) {
 		printf("Grab Unsuccessful\n");
 	//}
 	
-	XEvent e;
-	char buf[8];
-	KeySym key;
-	//XLookupString(&e.xkey, buf, 64, &key, NULL);
-	int numKeys = 0;
-	
-	XNextEvent(d, &e);
-	bool loop = true;
-	while (loop){
-	//if(e.type == KeyPress) {
+	while (true){
 		XNextEvent(d, &e);	
 		if((numKeys = XLookupString(&e.xkey, buf, 8, &key, 0))) {
 			printf("lookup returned: ");
@@ -91,17 +82,10 @@ int main(int argc, char* argv[]) {
 
 			/* Escape key pressed, exit */
 			if ((int)buf[0] == 27)
-				loop = false;
-
-			if(e.xkey.state == ControlMask && key == XK_q) {
-			    return 1;  
-			  //exitOnCondition(1, "C-Q pressed", 0, dpy, &w, &gc);
-			}
+				break;
 		}
 	
-	//} else {
-		//printf("fart\n");
-	//}
+
 	}
 	printf("out\n");
 	//getchar();
