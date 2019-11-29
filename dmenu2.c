@@ -20,16 +20,32 @@ struct {
 } settings;
 
 void draw(cairo_t *cr) {
+
+	int x = 0;
+	int y = 0;
+	int w = settings.width;
+	int h = settings.height;
+
+	/* Draw the border */
 	cairo_set_source_rgba(cr, 1, 1, 1, 1);
-	cairo_rectangle(cr, 0, 0, settings.width, settings.height);
+	cairo_rectangle(cr, x, y, w, h);
+	cairo_stroke(cr);
+
+	x++;
+	y++;
+	w = w-2;
+	h = h-2;
+	
+	/* Fill the rectangle */
 	cairo_set_source_rgba(cr, 0, 0, 0, 0.8);
+	cairo_rectangle(cr, x, y, w, h);
 	cairo_fill(cr);
 }
 
 void init_settings() {
 
-	settings.width = 500;
-	settings.height = 300;
+	settings.width = 800;
+	settings.height = 500;
 	settings.radius = 5;
 
 }
@@ -69,10 +85,11 @@ int main(int argc, char* argv[]) {
 	    d, root,
 	    s->width/2 - settings.width/2, 
 	    s->height/2 - settings.height/2, 
-	    settings.width, settings.height, 0,
-	    vinfo.depth, InputOutput, 
+	    settings.width, settings.height, 
+	    0, vinfo.depth, InputOutput, 
 	    vinfo.visual,
-	    CWOverrideRedirect | CWColormap | CWBackPixel | CWBorderPixel, &attrs
+	    CWOverrideRedirect | CWColormap | CWBackPixel | CWBorderPixel, 
+	    &attrs
 	);
 
 	XMapWindow(d, overlay);
