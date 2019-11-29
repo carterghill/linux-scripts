@@ -19,21 +19,35 @@ struct {
 
 } settings;
 
-void draw(cairo_t *cr) {
+struct TextBox {
 
-	int x = 0;
-	int y = 0;
-	int w = settings.width;
-	int h = settings.height;
-	int r = settings.radius;
+	int width;
+	int height;
+	char * text;
+	int text_len;
 
+	/* X Windows related variables. */
+	GC gc;
+	XFontStruct * font;
+	unsigned long black_pixel;    
+	unsigned long white_pixel;
+
+};
+
+/* Draw a rectangle with rounded corners 
+ * Reduced length of each line by the radius on each end 
+ * Draw quarter circle arcs at each corner
+ */
+void rounded_rectangle(cairo_t *cr, int x, int y, int w, int h, int r) {
+
+	/* Define angles for each corner */
 	double angle1 = 270 * (3.14159 / 180);
 	double angle2 = 0;
 	double angle3 = 90 * (3.14159 / 180);
 	double angle4 = 180 * (3.14159 / 180);
 
 	/* Fill the rectangle */
-	cairo_set_source_rgba(cr, 0, 0, 0, 0.8);
+	cairo_set_source_rgba(cr, 0.05, 0.05, 0.05, 0.9);
 	cairo_move_to(cr, x+r, y);
 	cairo_line_to(cr, w-r, y);
 	cairo_arc(cr, w-r, y+r, r, angle1, angle2);
@@ -46,7 +60,7 @@ void draw(cairo_t *cr) {
 	cairo_fill(cr);
 
 	/* Draw Border */
-	cairo_set_source_rgba(cr, 1, 1, 1, 1);
+	cairo_set_source_rgba(cr, 0.8, 0.8, 0.8, 1);
 	cairo_move_to(cr, x+r, y);
 	cairo_line_to(cr, w-r, y);
 	cairo_arc(cr, w-r, y+r, r, angle1, angle2);
@@ -55,8 +69,38 @@ void draw(cairo_t *cr) {
 	cairo_line_to(cr, r, h);
 	cairo_arc(cr, r, h-r, r, angle3, angle4);
 	cairo_line_to(cr, x, y+r);
-	cairo_arc(cr, r, r, r, angle4, angle1);	
+	cairo_arc(cr, r, r, r, angle4, angle1);
 	cairo_stroke(cr);
+
+}
+
+void draw_text(cairo_t *cr, int x, int y, int w, int h, char * input) {
+
+	cairo_text_extents_t extents;
+	
+	cairo_select_font_face(cr, "Courier",
+		CAIRO_FONT_SLANT_NORMAL,
+		CAIRO_FONT_WEIGHT_BOLD
+	);
+
+	cairo_set_font_size(cr, 60);
+	cairo_text_extents(cr, input, &extents);
+	cairo_move_to(cr, w/2 - extents.width/2, h/2);  
+	cairo_show_text(cr, input);
+	printf("Draw Text: %s", input);
+
+}
+
+void draw(cairo_t *cr, char * input) {
+
+	int x = 0;
+	int y = 0;
+	int w = settings.width;
+	int h = settings.height;
+	int r = settings.radius;
+
+	rounded_rectangle(cr, x, y, w, h, r);
+	draw_text(cr, x, y, w, h, input);
 
 }
 
@@ -64,7 +108,7 @@ void init_settings() {
 
 	settings.width = 800;
 	settings.height = 500;
-	settings.radius = 12;
+	settings.radius = 24;
 
 }
 
@@ -116,8 +160,8 @@ int main(int argc, char* argv[]) {
 			settings.width, settings.height);
 	cr = cairo_create(surf);
 
-	draw(cr);
-	XFlush(d);
+	//draw(cr, input);
+	//XFlush(d);
 
 	/* Take all keyboard input */
 	if(XGrabKeyboard(d,root,true,GrabModeAsync,GrabModeAsync,CurrentTime) 
@@ -163,6 +207,11 @@ int main(int argc, char* argv[]) {
 			input[index] = (char) buf[0];
 			index++;
 			input[index] = '\0';
+			
+			cairo_surface_flush(surf);
+			draw(cr, input);
+			XFlush(d);
+			//redraw();
 
 			printf("%s\n", input);
 
