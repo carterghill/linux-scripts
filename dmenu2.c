@@ -11,22 +11,40 @@
 
 typedef enum { false, true } bool;
 
+struct {
+
+	int width;
+	int height;
+	int radius;
+
+} settings;
+
 void draw(cairo_t *cr) {
-	cairo_set_source_rgba(cr, 0.8, 0.8, 0.8, 0.8);
-	cairo_rectangle(cr, 0, 0, 200, 200);
+	cairo_set_source_rgba(cr, 1, 1, 1, 1);
+	cairo_rectangle(cr, 0, 0, settings.width, settings.height);
+	cairo_set_source_rgba(cr, 0, 0, 0, 0.8);
 	cairo_fill(cr);
 }
 
+void init_settings() {
+
+	settings.width = 500;
+	settings.height = 300;
+	settings.radius = 5;
+
+}
 
 int main(int argc, char* argv[]) {
 
 	Display* d = XOpenDisplay(NULL);
 	Screen*  s = DefaultScreenOfDisplay(d);
 	Window root = DefaultRootWindow(d);
-	int default_screen = XDefaultScreen(d);
 	Window overlay;
+	cairo_t* cr;
+	cairo_surface_t* surf;
+	XSetWindowAttributes attrs;
+	XVisualInfo vinfo;
 
-	int i;
 	XEvent e;
 	char buf[8];
 	KeySym key;
@@ -34,13 +52,10 @@ int main(int argc, char* argv[]) {
 	char input[256];
 	int index = 0;
 
-	input[0] = '\0';
+	init_settings();
 
-	// thes two lines are really all you need
-	XSetWindowAttributes attrs;
 	attrs.override_redirect = true;
 
-	XVisualInfo vinfo;
 	if (!XMatchVisualInfo(d, DefaultScreen(d), 32, TrueColor, &vinfo)) {
 		printf("No visual found supporting 32 bit color, terminating\n");
 		return 1;
@@ -52,7 +67,9 @@ int main(int argc, char* argv[]) {
 
 	overlay = XCreateWindow(
 	    d, root,
-	    s->width/2, 0, 200, 200, 0,
+	    s->width/2 - settings.width/2, 
+	    s->height/2 - settings.height/2, 
+	    settings.width, settings.height, 0,
 	    vinfo.depth, InputOutput, 
 	    vinfo.visual,
 	    CWOverrideRedirect | CWColormap | CWBackPixel | CWBorderPixel, &attrs
@@ -60,19 +77,16 @@ int main(int argc, char* argv[]) {
 
 	XMapWindow(d, overlay);
 
-	cairo_surface_t* surf = cairo_xlib_surface_create(d, overlay,
-		vinfo.visual, 200, 200);
-	cairo_t* cr = cairo_create(surf);
+	surf = cairo_xlib_surface_create(d, overlay, vinfo.visual, 
+			settings.width, settings.height);
+	cr = cairo_create(surf);
 
 	draw(cr);
 	XFlush(d);
 
-	//std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-	
-	//for (i = 0; i < 10; i++) {
-	if(XGrabKeyboard(d, root, true, GrabModeAsync, 
-				GrabModeAsync, CurrentTime) == GrabSuccess) {
-		//printf("Black window grabbed before loop\n");
+	/* Take all keyboard input */
+	if(XGrabKeyboard(d,root,true,GrabModeAsync,GrabModeAsync,CurrentTime) 
+			== GrabSuccess) {
 	} else {
 		printf("Grab Unsuccessful\n");
 		return 1;
@@ -121,9 +135,9 @@ int main(int argc, char* argv[]) {
 	
 
 	}
+
 	printf("input: %s\n", input);
 
-	//getchar();
 	cairo_destroy(cr);
 	cairo_surface_destroy(surf);
 
