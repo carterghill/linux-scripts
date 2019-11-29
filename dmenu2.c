@@ -34,6 +34,8 @@ int main(int argc, char* argv[]) {
 	char input[256];
 	int index = 0;
 
+	input[0] = '\0';
+
 	// thes two lines are really all you need
 	XSetWindowAttributes attrs;
 	attrs.override_redirect = true;
@@ -75,28 +77,45 @@ int main(int argc, char* argv[]) {
 		printf("Grab Unsuccessful\n");
 		return 1;
 	}
-	
+
+	/* Eat the initial enter input */
+	XNextEvent(d, &e);
+
 	while (true){
+		
+		/* Wait for the next event */
 		XNextEvent(d, &e);
 
-		if (e.xkey.type == KeyRelease) {
-			printf("type 1\n");
+		/* Skip loop on key release to avoid double input */
+		if (e.xkey.type == KeyRelease)
 			continue;
-		}
 
+		/* If number of characters read > 0 */
 		if((numKeys = XLookupString(&e.xkey, buf, 8, &key, 0))) {
-			
-			for(i = 0; i < numKeys; i++) {
-				printf("text[%d]=%d\n", i, buf[i]);
-			}
 
 			/* Escape key pressed, exit */
 			if ((int)buf[0] == 27)
 				break;
 
+			/* Delete key was pressed */
+			if ((int)buf[0] == 8 && index > 0) {
+				index--;
+				input[index] = '\0';
+				continue;
+			}
+
+			/* Enter key was pressed */
+			if ((int)buf[0] == 13) {
+				printf("enter key\n");
+				system(input);
+				break;
+			} 
+
 			input[index] = (char) buf[0];
 			index++;
-			usleep(1000);
+			input[index] = '\0';
+
+			printf("%s\n", input);
 
 		}
 	
