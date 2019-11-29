@@ -25,28 +25,46 @@ void draw(cairo_t *cr) {
 	int y = 0;
 	int w = settings.width;
 	int h = settings.height;
+	int r = settings.radius;
 
-	/* Draw the border */
-	cairo_set_source_rgba(cr, 1, 1, 1, 1);
-	cairo_rectangle(cr, x, y, w, h);
-	cairo_stroke(cr);
+	double angle1 = 270 * (3.14159 / 180);
+	double angle2 = 0;
+	double angle3 = 90 * (3.14159 / 180);
+	double angle4 = 180 * (3.14159 / 180);
 
-	x++;
-	y++;
-	w = w-2;
-	h = h-2;
-	
 	/* Fill the rectangle */
 	cairo_set_source_rgba(cr, 0, 0, 0, 0.8);
-	cairo_rectangle(cr, x, y, w, h);
+	cairo_move_to(cr, x+r, y);
+	cairo_line_to(cr, w-r, y);
+	cairo_arc(cr, w-r, y+r, r, angle1, angle2);
+	cairo_line_to(cr, w, h-r);
+	cairo_arc(cr, w-r, h-r, r, angle2, angle3);
+	cairo_line_to(cr, r, h);
+	cairo_arc(cr, r, h-r, r, angle3, angle4);
+	cairo_line_to(cr, x, y+r);
+	cairo_arc(cr, r, r, r, angle4, angle1);
 	cairo_fill(cr);
+
+	/* Draw Border */
+	cairo_set_source_rgba(cr, 1, 1, 1, 1);
+	cairo_move_to(cr, x+r, y);
+	cairo_line_to(cr, w-r, y);
+	cairo_arc(cr, w-r, y+r, r, angle1, angle2);
+	cairo_line_to(cr, w, h-r);
+	cairo_arc(cr, w-r, h-r, r, angle2, angle3);
+	cairo_line_to(cr, r, h);
+	cairo_arc(cr, r, h-r, r, angle3, angle4);
+	cairo_line_to(cr, x, y+r);
+	cairo_arc(cr, r, r, r, angle4, angle1);	
+	cairo_stroke(cr);
+
 }
 
 void init_settings() {
 
 	settings.width = 800;
 	settings.height = 500;
-	settings.radius = 5;
+	settings.radius = 12;
 
 }
 
