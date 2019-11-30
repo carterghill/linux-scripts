@@ -16,23 +16,10 @@ struct {
 	int width;
 	int height;
 	int radius;
+	char * folder;
+	char * files[256][64];
 
 } settings;
-
-struct TextBox {
-
-	int width;
-	int height;
-	char * text;
-	int text_len;
-
-	/* X Windows related variables. */
-	GC gc;
-	XFontStruct * font;
-	unsigned long black_pixel;    
-	unsigned long white_pixel;
-
-};
 
 /* Draw a rectangle with rounded corners 
  * Reduced length of each line by the radius on each end 
@@ -47,7 +34,7 @@ void rounded_rectangle(cairo_t *cr, int x, int y, int w, int h, int r) {
 	double angle4 = 180 * (3.14159 / 180);
 
 	/* Fill the rectangle */
-	cairo_set_source_rgba(cr, 0.05, 0.05, 0.05, 0.9);
+	cairo_set_source_rgba(cr, 0.15, 0.15, 0.15, 1);
 	cairo_move_to(cr, x+r, y);
 	cairo_line_to(cr, w-r, y);
 	cairo_arc(cr, w-r, y+r, r, angle1, angle2);
@@ -60,7 +47,7 @@ void rounded_rectangle(cairo_t *cr, int x, int y, int w, int h, int r) {
 	cairo_fill(cr);
 
 	/* Draw Border */
-	cairo_set_source_rgba(cr, 0.8, 0.8, 0.8, 1);
+	cairo_set_source_rgba(cr, 0.9, 0.9, 0.9, 1);
 	cairo_move_to(cr, x+r, y);
 	cairo_line_to(cr, w-r, y);
 	cairo_arc(cr, w-r, y+r, r, angle1, angle2);
@@ -83,11 +70,11 @@ void draw_text(cairo_t *cr, int x, int y, int w, int h, char * input) {
 		CAIRO_FONT_WEIGHT_BOLD
 	);
 
+	cairo_set_source_rgba(cr, 1, 1, 1, 1);
 	cairo_set_font_size(cr, 60);
 	cairo_text_extents(cr, input, &extents);
 	cairo_move_to(cr, w/2 - extents.width/2, h/2);  
 	cairo_show_text(cr, input);
-	printf("Draw Text: %s", input);
 
 }
 
@@ -109,6 +96,28 @@ void init_settings() {
 	settings.width = 800;
 	settings.height = 500;
 	settings.radius = 24;
+	settings.folder = "/usr/share/applications";
+	//load_files();
+
+}
+
+void load_files() {
+
+	FILE *ls;
+	char buf[64];
+	strcpy(buf, "ls ");
+       	strcat(buf, settings.folder);
+	ls = popen(buf, "r");
+	int i = 0;
+	
+	/* Get all of the file names */
+	while (fgets(buf, sizeof(buf), ls) != 0) {
+		printf("buf: %s\n", buf);
+		strcpy(settings.files[i], buf);
+		i++;
+	}
+	printf("%i files read\n", i);
+	pclose(ls);	
 
 }
 
@@ -131,6 +140,9 @@ int main(int argc, char* argv[]) {
 	int index = 0;
 
 	init_settings();
+	load_files();
+
+	input[0] = '\0';
 
 	attrs.override_redirect = true;
 
@@ -160,8 +172,11 @@ int main(int argc, char* argv[]) {
 			settings.width, settings.height);
 	cr = cairo_create(surf);
 
-	//draw(cr, input);
-	//XFlush(d);
+	cairo_save(cr);
+	draw(cr, input);
+	XFlush(d);
+	cairo_save(cr);
+	cairo_save(cr);
 
 	/* Take all keyboard input */
 	if(XGrabKeyboard(d,root,true,GrabModeAsync,GrabModeAsync,CurrentTime) 
@@ -194,6 +209,10 @@ int main(int argc, char* argv[]) {
 			if ((int)buf[0] == 8 && index > 0) {
 				index--;
 				input[index] = '\0';
+				cairo_restore(cr);
+				cairo_save(cr);
+				draw(cr, input);
+				XFlush(d);
 				continue;
 			}
 
@@ -208,11 +227,15 @@ int main(int argc, char* argv[]) {
 			index++;
 			input[index] = '\0';
 			
-			cairo_surface_flush(surf);
+			cairo_restore(cr);
+			cairo_save(cr);
+			//cairo_restore(cr);
+			//cairo_surface_flush(surf);
 			draw(cr, input);
 			XFlush(d);
+			cairo_surface_flush(surf);
 			//redraw();
-
+			//cairo_restore(cr);
 			printf("%s\n", input);
 
 		}
