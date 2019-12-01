@@ -16,6 +16,7 @@ struct {
 	int width;
 	int height;
 	int radius;
+	int font_size;
 	char * folder;
 	char * files[256][64];
 
@@ -70,11 +71,14 @@ void draw_text(cairo_t *cr, int x, int y, int w, int h, char * input) {
 		CAIRO_FONT_WEIGHT_BOLD
 	);
 
+	/* Draw input text */
 	cairo_set_source_rgba(cr, 1, 1, 1, 1);
-	cairo_set_font_size(cr, 60);
+	cairo_set_font_size(cr, settings.font_size);
 	cairo_text_extents(cr, input, &extents);
-	cairo_move_to(cr, w/2 - extents.width/2, h/2);  
+	cairo_move_to(cr, w/2 - extents.width/2, y+settings.font_size);  
 	cairo_show_text(cr, input);
+
+	/* Draw titles of matching applications */
 
 }
 
@@ -96,6 +100,7 @@ void init_settings() {
 	settings.width = 800;
 	settings.height = 500;
 	settings.radius = 24;
+	settings.font_size = 60;
 	settings.folder = "/usr/share/applications";
 	//load_files();
 
