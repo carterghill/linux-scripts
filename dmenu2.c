@@ -19,6 +19,8 @@ struct {
 	int height;
 	int radius;
 	int font_size;
+	int num_apps;
+	int index;
 	char * folder;
 	App * apps[256];
 
@@ -64,9 +66,35 @@ void rounded_rectangle(cairo_t *cr, int x, int y, int w, int h, int r) {
 
 }
 
+bool is_in(char * str1, char * str2) {
+
+	int i;
+	int j;
+
+	/* Loop through string string 2 */
+	for (i = 0; str2[i] != '\0'; i++) {
+		
+		/* Loop through characters in str2 to see if match */
+		for (j = 0; str1[j] != '\0'; j++) {
+			
+			if (str2[i+j] == '\0' || str1[j] != str2[i+j])
+				break;
+
+			if (str1[j+1] == '\0')
+				return true;
+		}
+
+	}
+
+	return false;
+
+}
+
 void draw_text(cairo_t *cr, int x, int y, int w, int h, char * input) {
 
 	int i;
+	char * ptr;
+	char str[64];
 	cairo_text_extents_t extents;
 	
 	cairo_select_font_face(cr, "Courier",
@@ -78,14 +106,26 @@ void draw_text(cairo_t *cr, int x, int y, int w, int h, char * input) {
 	cairo_set_source_rgba(cr, 1, 1, 1, 1);
 	cairo_set_font_size(cr, settings.font_size);
 	cairo_text_extents(cr, input, &extents);
-	cairo_move_to(cr, w/2 - extents.width/2, y+settings.font_size);  
+	y = y+settings.font_size;
+	cairo_move_to(cr, w/2 - extents.width/2, y);  
 	cairo_show_text(cr, input);
 
 	/* Draw titles of matching applications */
-	for (i = 0; input[i] != '\0'; i++) {
-	//	if () {
-			
-	//	}
+	if (input[0] == '\0')
+		return;
+
+	for (i = 0; i < settings.num_apps; i++) {
+		printf("%i: %s\n", i, settings.apps[i]->name);
+		strcpy(str, settings.apps[i]->name);
+		ptr = strstr(input, str);
+		printf("str: %s\nptr: %s\n", str, ptr);
+		if (is_in(input, settings.apps[i]->name)) {
+			printf("Matched: %s", settings.apps[i]->name);
+			y = y + settings.font_size;
+			cairo_text_extents(cr, settings.apps[i]->name, &extents);
+			cairo_move_to(cr, w/2 - extents.width/2, y);
+			cairo_show_text(cr, settings.apps[i]->name);
+		}	
 	}
 }
 
@@ -109,7 +149,7 @@ void init_settings() {
 	settings.radius = 24;
 	settings.font_size = 60;
 	settings.folder = "/usr/share/applications";
-	//load_files();
+	settings.index = 0;
 
 }
 
@@ -125,6 +165,11 @@ void load_files() {
 	
 	/* Get all of the file names */
 	while (fgets(buf, sizeof(buf), ls) != 0) {
+		
+		/* Skip it if it isn't a .desktop file */
+		if (strstr(buf, ".desktop") == NULL)
+			continue;
+
 		strcpy(filepath, settings.folder);
 		strcat(filepath, "/");
 		strcat(filepath, buf);
@@ -132,8 +177,11 @@ void load_files() {
 		settings.apps[i] = ParseApp(filepath);
 		printf("Name: %s", settings.apps[i]->name);
 		i++;
+
 	}
+
 	printf("%i files read\n", i);
+	settings.num_apps = i;
 	pclose(ls);	
 
 }
@@ -155,7 +203,6 @@ int main(int argc, char* argv[]) {
 	KeySym key;
 	int numKeys = 0;
 	char input[256];
-	int index = 0;
 
 	//App * app = ParseApp("/usr/share/applications/Android Studio.desktop");
 	//printf("Name: %s", app->name);
@@ -216,7 +263,7 @@ int main(int argc, char* argv[]) {
 		XNextEvent(d, &e);
 
 		/* Skip loop on key release to avoid double input */
-		if (e.xkey.type == KeyRelease)
+		if (e.xkey.type != KeyPress)
 			continue;
 
 		/* If number of characters read > 0 */
@@ -227,9 +274,9 @@ int main(int argc, char* argv[]) {
 				break;
 
 			/* Delete key was pressed */
-			if ((int)buf[0] == 8 && index > 0) {
-				index--;
-				input[index] = '\0';
+			if ((int)buf[0] == 8 && settings.index > 0) {
+				settings.index--;
+				input[settings.index] = '\0';
 				cairo_restore(cr);
 				cairo_save(cr);
 				draw(cr, input);
@@ -244,9 +291,9 @@ int main(int argc, char* argv[]) {
 				break;
 			} 
 
-			input[index] = (char) buf[0];
-			index++;
-			input[index] = '\0';
+			input[settings.index] = (char) buf[0];
+			settings.index++;
+			input[settings.index] = '\0';
 			
 			cairo_restore(cr);
 			cairo_save(cr);
