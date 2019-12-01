@@ -19,6 +19,7 @@ struct {
 	int height;
 	int radius;
 	int font_size;
+	int list_font_size;
 	int num_apps;
 	int index;
 	char * folder;
@@ -90,11 +91,46 @@ bool is_in(char * str1, char * str2) {
 
 }
 
-void draw_text(cairo_t *cr, int x, int y, int w, int h, char * input) {
+void draw_list(cairo_t *cr, int x, int y, int w, int h, char * input) {
 
 	int i;
-	char * ptr;
-	char str[64];
+	cairo_text_extents_t extents;
+	int font_size = settings.list_font_size;
+	char output[64];
+
+	cairo_set_font_size(cr, font_size);
+
+	/* Draw titles of matching applications */
+        if (input[0] == '\0')
+                return;
+
+        for (i = 0; i < settings.num_apps; i++) {
+                printf("%i: %s\n", i, settings.apps[i]->name);
+                if (is_in(input, settings.apps[i]->name)) {
+                        printf("Matched: %s", settings.apps[i]->name);
+
+			strcpy(output, settings.apps[i]->name);
+			cairo_text_extents(cr, settings.apps[i]->name, &extents);
+
+			/* Check if output is too big */
+			while (extents.width > w) {
+				strcpy(&output[strlen(output)-6], "....");
+				output[strlen(output)-1] = '\0';
+				cairo_text_extents(cr, output, &extents);
+			}
+
+                        cairo_move_to(cr, w/2 - extents.width/2, y);
+
+                        cairo_show_text(cr, output);
+			y = y+font_size+6;
+                }
+        }
+
+
+}
+
+void draw_text(cairo_t *cr, int x, int y, int w, int h, char * input) {
+
 	cairo_text_extents_t extents;
 	
 	cairo_select_font_face(cr, "Courier",
@@ -111,22 +147,8 @@ void draw_text(cairo_t *cr, int x, int y, int w, int h, char * input) {
 	cairo_show_text(cr, input);
 
 	/* Draw titles of matching applications */
-	if (input[0] == '\0')
-		return;
-
-	for (i = 0; i < settings.num_apps; i++) {
-		printf("%i: %s\n", i, settings.apps[i]->name);
-		strcpy(str, settings.apps[i]->name);
-		ptr = strstr(input, str);
-		printf("str: %s\nptr: %s\n", str, ptr);
-		if (is_in(input, settings.apps[i]->name)) {
-			printf("Matched: %s", settings.apps[i]->name);
-			y = y + settings.font_size;
-			cairo_text_extents(cr, settings.apps[i]->name, &extents);
-			cairo_move_to(cr, w/2 - extents.width/2, y);
-			cairo_show_text(cr, settings.apps[i]->name);
-		}	
-	}
+	y = y + settings.font_size;
+	draw_list(cr, x, y, w/2, h, input);
 }
 
 void draw(cairo_t *cr, char * input) {
@@ -148,6 +170,7 @@ void init_settings() {
 	settings.height = 500;
 	settings.radius = 24;
 	settings.font_size = 60;
+	settings.list_font_size = 28;
 	settings.folder = "/usr/share/applications";
 	settings.index = 0;
 
