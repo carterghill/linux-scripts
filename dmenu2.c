@@ -5,6 +5,7 @@
 #include <X11/Xlib.h>
 #include <X11/X.h>
 #include <X11/Xutil.h>
+#include <ctype.h>
 
 #include <cairo.h>
 #include <cairo-xlib.h>
@@ -78,7 +79,7 @@ bool is_in(char * str1, char * str2) {
 		/* Loop through characters in str2 to see if match */
 		for (j = 0; str1[j] != '\0'; j++) {
 			
-			if (str2[i+j] == '\0' || str1[j] != str2[i+j])
+			if (str2[i+j] == '\0' || tolower(str1[j]) != tolower(str2[i+j]))
 				break;
 
 			if (str1[j+1] == '\0')
