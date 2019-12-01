@@ -9,6 +9,8 @@
 #include <cairo.h>
 #include <cairo-xlib.h>
 
+#include "app-parser.h"
+
 typedef enum { false, true } bool;
 
 struct {
@@ -18,7 +20,7 @@ struct {
 	int radius;
 	int font_size;
 	char * folder;
-	char * files[256][64];
+	App * apps[256];
 
 } settings;
 
@@ -64,6 +66,7 @@ void rounded_rectangle(cairo_t *cr, int x, int y, int w, int h, int r) {
 
 void draw_text(cairo_t *cr, int x, int y, int w, int h, char * input) {
 
+	int i;
 	cairo_text_extents_t extents;
 	
 	cairo_select_font_face(cr, "Courier",
@@ -79,7 +82,11 @@ void draw_text(cairo_t *cr, int x, int y, int w, int h, char * input) {
 	cairo_show_text(cr, input);
 
 	/* Draw titles of matching applications */
-
+	for (i = 0; input[i] != '\0'; i++) {
+	//	if () {
+			
+	//	}
+	}
 }
 
 void draw(cairo_t *cr, char * input) {
@@ -110,6 +117,7 @@ void load_files() {
 
 	FILE *ls;
 	char buf[64];
+	char filepath[64];
 	strcpy(buf, "ls ");
        	strcat(buf, settings.folder);
 	ls = popen(buf, "r");
@@ -117,8 +125,12 @@ void load_files() {
 	
 	/* Get all of the file names */
 	while (fgets(buf, sizeof(buf), ls) != 0) {
-		printf("buf: %s\n", buf);
-		strcpy(settings.files[i], buf);
+		strcpy(filepath, settings.folder);
+		strcat(filepath, "/");
+		strcat(filepath, buf);
+		filepath[strcspn(filepath, "\n")]=0;
+		settings.apps[i] = ParseApp(filepath);
+		printf("Name: %s", settings.apps[i]->name);
 		i++;
 	}
 	printf("%i files read\n", i);
@@ -136,6 +148,7 @@ int main(int argc, char* argv[]) {
 	cairo_surface_t* surf;
 	XSetWindowAttributes attrs;
 	XVisualInfo vinfo;
+	
 
 	XEvent e;
 	char buf[8];
@@ -143,6 +156,9 @@ int main(int argc, char* argv[]) {
 	int numKeys = 0;
 	char input[256];
 	int index = 0;
+
+	//App * app = ParseApp("/usr/share/applications/Android Studio.desktop");
+	//printf("Name: %s", app->name);
 
 	init_settings();
 	load_files();

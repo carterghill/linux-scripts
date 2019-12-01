@@ -20,10 +20,13 @@ bin/auto_background: auto_background.c
 	mkdir -p bin
 	$(CC) -o bin/auto_background $(CFLAGS) auto_background.c
 
-bin/dmenu2: dmenu2.c
+bin/dmenu2: dmenu2.c app-parser.o
 	mkdir -p bin
 	$(CC) dmenu2.c -o bin/dmenu2 $(CFLAGS) -I/usr/include/cairo/ -lX11 \
-		-lcairo
+		-lcairo app-parser.o
+
+app-parser.o: app-parser.c
+	$(CC) app-parser.c -o app-parser.o -c $(CFLAGS)
 
 clean:
 	rm -f bin/*

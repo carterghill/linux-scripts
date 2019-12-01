@@ -2,14 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct App {
-
-	char * name;
-	char * comment;
-	char * exec;
-	char * icon;
-	
-} App;
+#include "app-parser.h"
 
 /* Loop through the line's characters and figure out it's type and value */
 void ParseLine(App * app, char * line) {
@@ -18,7 +11,6 @@ void ParseLine(App * app, char * line) {
 	int len = strlen(line);
 	char type[16];
 	char value[64];
-	printf("Line: %s", line);
 	
 	for (i = 0; i < len; i++) {
 		
@@ -60,27 +52,18 @@ void ParseLine(App * app, char * line) {
 
 App * ParseApp (char * path) {
 
-	printf("Path: %s\n", path);
-
 	FILE * file = fopen(path, "r");
-	char line[256];
-
+	char line[64];
 	App * app = malloc(sizeof(struct App));
+
+	if (file == NULL)
+		printf("file is null\n");
+
 
 	while (fgets(line, sizeof(line), file)) {
 		ParseLine(app, line);
 	}
 
 	return app;
-
-}
-
-int main () {
-
-	App * app = ParseApp("/usr/share/applications/atom.desktop");
-	printf("Name: %s", app->name);
-	printf("Comment: %s", app->comment);
-	printf("Exec: %s", app->exec);
-	return 1;
 
 }
