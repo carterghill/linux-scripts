@@ -1,4 +1,4 @@
-typedef struct App {
+typedef struct {
 
         char * name;
         char * comment;

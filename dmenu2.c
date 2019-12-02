@@ -125,6 +125,7 @@ void draw_list(cairo_t *cr, int x, int y, int w, int h, char * input) {
 
                         if (matches == settings.list_cursor) {
                                 selected = settings.apps[i];
+				printf("Description: %s\n", settings.apps[i]->comment);
                                 cairo_set_source_rgba(cr, 0.2, 0.2, 0.2, 1);
                                 cairo_rectangle(cr, x+6, y-font_size, w-6, font_size+12);
                                 cairo_fill(cr);
@@ -223,7 +224,10 @@ void load_files() {
 		strcat(filepath, "/");
 		strcat(filepath, buf);
 		filepath[strcspn(filepath, "\n")]=0;
+		printf("%i: ", i);
 		settings.apps[i] = ParseApp(filepath);
+		if (i == 0)
+			settings.apps[i] = ParseApp(filepath);
 		printf("Name: %s\n", settings.apps[i]->name);
 		i++;
 

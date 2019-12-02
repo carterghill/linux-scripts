@@ -29,10 +29,11 @@ void ParseLine(App * app, char * line) {
 	if (strcmp(type, "Name")==0 && app->name == NULL) {
 		app->name = malloc(strlen(value)+1);
 		strcpy(app->name, value);
+		printf("Name: %s\n", app->name);
 		return;
 	}
-	
-	if (strcmp(type, "Comment")==0 && app->comment == NULL) {
+
+	if (strcmp(type, "Comment")==0 && strcmp(app->comment, "No description")==0) {
                 app->comment = malloc(strlen(value)+1);
                 strcpy(app->comment, value);
 		return;
@@ -57,6 +58,9 @@ App * ParseApp (char * path) {
 	FILE * file = fopen(path, "r");
 	char line[64];
 	App * app = malloc(sizeof(struct App));
+
+	app->comment = malloc(strlen("No description")+1);
+	strcpy(app->comment, "No description");
 
 	while (fgets(line, sizeof(line), file)) {
 		ParseLine(app, line);
