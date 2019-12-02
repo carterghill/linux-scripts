@@ -111,7 +111,9 @@ void draw_list(cairo_t *cr, int x, int y, int w, int h, char * input) {
 
         for (i = 0; i < settings.num_apps; i++) {
                 
-		if (is_in(input, settings.apps[i]->name)/* || is_in(input, settings.apps[i]->comment)*/) {
+		if (is_in(input, settings.apps[i]->name) 
+				|| is_in(input, settings.apps[i]->comment)
+				|| is_in(input, settings.apps[i]->tags)) {
 
 			strcpy(output, settings.apps[i]->name);
 			cairo_text_extents(cr, settings.apps[i]->name, &extents);

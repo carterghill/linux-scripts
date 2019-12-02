@@ -51,16 +51,25 @@ void ParseLine(App * app, char * line) {
 		return;
         }
 
+	if (strcmp(type, "Categories")==0 &&  strcmp(app->tags, " ")==0) {
+                app->tags = malloc(strlen(value)+1);
+                strcpy(app->tags, value);
+                return;
+        }
+
 }
 
 App * ParseApp (char * path) {
 
 	FILE * file = fopen(path, "r");
 	char line[64];
-	App * app = malloc(sizeof(struct App));
+	App * app = malloc(sizeof(App));
 
 	app->comment = malloc(strlen("No description")+1);
 	strcpy(app->comment, "No description");
+
+	app->tags = malloc(strlen(" ")+1);
+        strcpy(app->tags, " ");
 
 	while (fgets(line, sizeof(line), file)) {
 		ParseLine(app, line);

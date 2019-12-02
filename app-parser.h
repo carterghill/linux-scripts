@@ -4,6 +4,7 @@ typedef struct {
         char * comment;
         char * exec;
         char * icon;
+	char * tags;
         
 } App;
 
