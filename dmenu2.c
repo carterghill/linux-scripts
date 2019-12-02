@@ -214,15 +214,17 @@ void load_files() {
 	while (fgets(buf, sizeof(buf), ls) != 0) {
 		
 		/* Skip it if it isn't a .desktop file */
-		if (strstr(buf, ".desktop") == NULL)
+		if (!is_in(".desktop", buf)) {
+			printf("Skipped: %s\n", buf);
 			continue;
+		}
 
 		strcpy(filepath, settings.folder);
 		strcat(filepath, "/");
 		strcat(filepath, buf);
 		filepath[strcspn(filepath, "\n")]=0;
 		settings.apps[i] = ParseApp(filepath);
-		printf("Name: %s", settings.apps[i]->name);
+		printf("Name: %s\n", settings.apps[i]->name);
 		i++;
 
 	}
@@ -311,11 +313,13 @@ int main(int argc, char* argv[]) {
 		XNextEvent(d, &e);
 
 		/* Skip loop on key release to avoid double input */
-		if (e.xkey.type != KeyPress)
+		if (e.xkey.type == KeyRelease)
 			continue;
 
 		/* If number of characters read > 0 */
 		if((numKeys = XLookupString(&e.xkey, buf, 8, &key, 0))) {
+
+			printf("numkeys: %i\n", numKeys);
 
 			/* Escape key pressed, exit */
 			if ((int)buf[0] == 27)
@@ -343,23 +347,25 @@ int main(int argc, char* argv[]) {
 				break;
 			} 
 
+			settings.list_cursor = 0;
 			input[settings.index] = (char) buf[0];
 			settings.index++;
 			input[settings.index] = '\0';
 			
-			cairo_restore(cr);
-			cairo_save(cr);
-			//cairo_restore(cr);
-			//cairo_surface_flush(surf);
-			draw(cr, input);
-			XFlush(d);
-			cairo_surface_flush(surf);
-			//redraw();
-			//cairo_restore(cr);
-			printf("%s\n", input);
+		} else {
+			printf("numkeys: %i\n", numKeys);
+			printf("e.xkey: %u\n", e.xkey.keycode);
+
+			/* Down key has been pressed */
+			if (e.xkey.keycode == 116 && settings.list_cursor > 0) {
+				settings.list_cursor++;	
+			}
 
 		}
 	
+		draw(cr, input);
+		XFlush(d);
+		cairo_surface_flush(surf);
 
 	}
 
@@ -371,8 +377,10 @@ int main(int argc, char* argv[]) {
 	XUnmapWindow(d, overlay);
 	XCloseDisplay(d);
 
-	if (enter)
+	if (enter) {
+		printf("Exec: %s\n", selected->exec);
 		system(selected->exec);
+	}
 
 	return 1;
 
