@@ -14,6 +14,8 @@
 
 typedef enum { false, true } bool;
 
+App * selected;
+
 struct {
 
 	int width;
@@ -23,6 +25,7 @@ struct {
 	int list_font_size;
 	int num_apps;
 	int index;
+	int list_cursor;
 	char * folder;
 	App * apps[256];
 
@@ -98,6 +101,7 @@ void draw_list(cairo_t *cr, int x, int y, int w, int h, char * input) {
 	cairo_text_extents_t extents;
 	int font_size = settings.list_font_size;
 	char output[64];
+	int matches = 0;
 
 	cairo_set_font_size(cr, font_size);
 
@@ -106,12 +110,26 @@ void draw_list(cairo_t *cr, int x, int y, int w, int h, char * input) {
                 return;
 
         for (i = 0; i < settings.num_apps; i++) {
-                printf("%i: %s\n", i, settings.apps[i]->name);
-                if (is_in(input, settings.apps[i]->name)) {
-                        printf("Matched: %s", settings.apps[i]->name);
+                
+		if (is_in(input, settings.apps[i]->name)) {
 
 			strcpy(output, settings.apps[i]->name);
 			cairo_text_extents(cr, settings.apps[i]->name, &extents);
+
+			cairo_move_to(cr, w/2 - extents.width/2, y);
+
+                        matches++;
+                        if (settings.list_cursor == 0) {
+                                settings.list_cursor++;
+                        }
+
+                        if (matches == settings.list_cursor) {
+                                selected = settings.apps[i];
+                                cairo_set_source_rgba(cr, 0.2, 0.2, 0.2, 1);
+                                cairo_rectangle(cr, x+6, y-font_size, w-6, font_size+12);
+                                cairo_fill(cr);
+                        }
+
 
 			/* Check if output is too big */
 			while (extents.width > w) {
@@ -122,6 +140,7 @@ void draw_list(cairo_t *cr, int x, int y, int w, int h, char * input) {
 
                         cairo_move_to(cr, w/2 - extents.width/2, y);
 
+			cairo_set_source_rgba(cr, 1, 1, 1, 1);
                         cairo_show_text(cr, output);
 			y = y+font_size+6;
                 }
@@ -174,6 +193,7 @@ void init_settings() {
 	settings.list_font_size = 28;
 	settings.folder = "/usr/share/applications";
 	settings.index = 0;
+	settings.list_cursor = 0;
 
 }
 
