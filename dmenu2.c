@@ -111,7 +111,7 @@ void draw_list(cairo_t *cr, int x, int y, int w, int h, char * input) {
 
         for (i = 0; i < settings.num_apps; i++) {
                 
-		if (is_in(input, settings.apps[i]->name)) {
+		if (is_in(input, settings.apps[i]->name)/* || is_in(input, settings.apps[i]->comment)*/) {
 
 			strcpy(output, settings.apps[i]->name);
 			cairo_text_extents(cr, settings.apps[i]->name, &extents);
@@ -360,6 +360,11 @@ int main(int argc, char* argv[]) {
 			if (e.xkey.keycode == 116 && settings.list_cursor > 0) {
 				settings.list_cursor++;	
 			}
+
+			/* Up key has been pressed */
+                        if (e.xkey.keycode == 111 && settings.list_cursor > 1) {
+                                settings.list_cursor--;
+                        }
 
 		}
 	

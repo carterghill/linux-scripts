@@ -18,6 +18,7 @@ void ParseLine(App * app, char * line) {
 			strcpy(value, &line[i+1]);
 			type[i] = '\0';
 			value[strcspn(value, "\n")]=0;
+			value[strcspn(value, "%")]=0;
 			break;	
 		}
 
