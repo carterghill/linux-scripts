@@ -146,6 +146,9 @@ void draw_list(cairo_t *cr, int x, int y, int w, int h, char * input) {
                 }
         }
 
+	if (matches == 0) {
+		selected = NULL;
+	}
 
 }
 
@@ -247,6 +250,7 @@ int main(int argc, char* argv[]) {
 	KeySym key;
 	int numKeys = 0;
 	char input[256];
+	bool enter = false;
 
 	//App * app = ParseApp("/usr/share/applications/Android Studio.desktop");
 	//printf("Name: %s", app->name);
@@ -331,7 +335,11 @@ int main(int argc, char* argv[]) {
 			/* Enter key was pressed */
 			if ((int)buf[0] == 13) {
 				printf("enter key\n");
-				system(input);
+				if (selected != NULL) {
+					//system(selected->exec);
+					enter = true;
+				}
+				//system(input);
 				break;
 			} 
 
@@ -362,6 +370,9 @@ int main(int argc, char* argv[]) {
 
 	XUnmapWindow(d, overlay);
 	XCloseDisplay(d);
+
+	if (enter)
+		system(selected->exec);
 
 	return 1;
 
